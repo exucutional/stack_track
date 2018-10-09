@@ -1,10 +1,8 @@
 /*
  ============================================================================
- Name        : dev_room_eclipse.c
+ Name        : Text_alphabet_sorting.c
  Author      : Exdev
- Version     :
- Copyright   :
- Description :
+ Version     : 0.5
  ============================================================================
  */
 
@@ -23,7 +21,7 @@
 
 char** Read_text(FILE *fin, int *nlines);
 void Str_sort(char **text, int nlines);
-void Text_out(char **text, int nlines);
+void Text_out(FILE *fout, char **text, int nlines);
 int Str_compare(const void *p1, const void *p2);
 
 
@@ -32,14 +30,27 @@ int main()
 	int nlines = 0;
 
 	FILE* fin;
-	fin = fopen("//home//exucutional//Programs//eclipse//eclipse//Projects//dev_room_eclipse//src//input.txt", "r");
+	FILE* fout;
+	fin = fopen("input.txt", "r");
+	fout = fopen("output.txt", "w");
 
 	char** text = NULL;
 	text = Read_text(fin, &nlines);
-	assert(fin != NULL);
-	qsort(text, nlines, sizeof(char*), Str_compare);
-	Text_out(text, nlines);
 
+	if (fin == NULL)
+	{
+		printf("Couldn't open input file\n");
+		assert(1);
+	}
+	if(fout == NULL)
+	{
+		printf("Couldn't open output file\n");
+		assert(1);
+	}
+
+	qsort(text, nlines, sizeof(char*), Str_compare);
+
+	Text_out(fout, text, nlines);
 
 	fclose(fin);
 	return 0;
@@ -53,24 +64,25 @@ char** Read_text(FILE *fin, int *nlines)
 
 
 	char* line = NULL;
-	line = (char*) calloc(MAX_LINES, sizeof(char));
-
+	line = (char*) calloc(MAX_SIZE_LINE, sizeof(char));
 
 	while ( fgets(line, MAX_SIZE_LINE, fin) != NULL )
 	{
 
 		text[*nlines] = line;
 		*nlines+= 1;
-		line = (char*) calloc(MAX_LINES, sizeof(char));
+		line = (char*) calloc(MAX_SIZE_LINE, sizeof(char));
 	}
+
 	return text;
 }
 
-void Text_out(char **text, int nlines)
+void Text_out(FILE *fout, char **text, int nlines)
 {
 	for (int i = 0; i < nlines; i++)
 	{
 		printf("%s", text[i]);
+		fprintf(fout ,"%s", text[i]);
 	}
 }
 
@@ -100,7 +112,7 @@ int Str_compare(const void *p1,const void *p2)
 	int j = 0;
 	const char *string1 = *(char**) p1;
 	const char *string2 = *(char**) p2;
-	while (string1[i] != '\n' && string2[j] != '\n')
+	while (string1[i] != '\0' && string2[j] != '\0')
 	{
 		while (!isalpha(string1[i]) ) {i++;}
 		while (!isalpha(string2[j]) ) {j++;}
