@@ -2,7 +2,7 @@
  ============================================================================
  Name        : Stack.c
  Author      : Exdev
- Version     : 0.7
+ Version     : 0.7.1
  ============================================================================
  */
 
@@ -40,8 +40,6 @@ struct stack
 	data_t *data;
 	uintptr_t mark_stk_end;
 };
-
-
 
 int unit_test();
 int stackctor(struct stack *thestk);
@@ -163,6 +161,7 @@ int unit_test()
 		UNIT_TEST_COMPARE(stack_push_back(&thestk, i * 33), ==, 0);
 		UNIT_TEST_COMPARE(thestk.data[i], ==, i * 33);
 	}
+	UNIT_TEST_COMPARE(stack_check(&thestk), ==, 0);
 	stack_dump(&thestk, "check");
 	UNIT_TEST_COMPARE(stack_pop_back(&thestk, &buf), ==, 0);
 	UNIT_TEST_COMPARE(buf, ==, 3234);
@@ -170,7 +169,7 @@ int unit_test()
 	stackdctor(&thestk);
 	UNIT_TEST_COMPARE(thestk.size, ==, 0);
 	printf("\nALL TEST PASSED\n");
-	return 1;
+	return 0;
 }
 //==========================================================================
 uint64_t stack_gnu_hash(void *array, int size)
