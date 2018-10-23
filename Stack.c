@@ -1,3 +1,4 @@
+/// You can use doxygen-style for this.
 /*
  ============================================================================
  Name        : Stack.c
@@ -7,9 +8,9 @@
  */
 
 #include <stdio.h>
-#include <malloc.h>
+#include <malloc.h> 	/// included in stdlib
 #include <stdlib.h>
-#include <stdbool.h>
+#include <stdbool.h> 	/// why
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
@@ -17,7 +18,17 @@
 
 typedef uint64_t data_t;
 
+/// Avoid defines of const values
+// cosnt size_t STACK_T_INIT_CPT = 100;
 #define INITIAL_CAPACITY 100
+
+/// There must be: 
+// #define name(args)	\
+// do {			\
+// 	same code;	\
+// }			\
+// while (0) // ';' manually
+//
 #define UNIT_TEST_COMPARE(p1, op, p2)	\
 {	\
 	if (p1 op p2)	\
@@ -31,27 +42,49 @@ typedef uint64_t data_t;
 	}	\
 }
 
+
+/// These definitions must be written in separate .h (header) file
+/// example: 	stack_t.h (only definitions, use header protection)
+/// 		stack_t.c (only code of stack_t functions defined in
+///			stack_t.h)
+///////////////////////////////////////////////////////////////////////////////////////////
+
+/// Header protection (in header file)
+// #ifndef _STACK_T_H_
+// #define _STACK_T_H_
+//	your code
+// #endif
+
+/// stack_t (c-linux-like) or Stack (cpp-like) name is better
 struct stack
 {
-	uintptr_t mark_stk_begin;
-	int size;
-	int capacity;
+	uintptr_t mark_stk_begin;	/// This name is too long.
+					/// maybe mark_beg and mark_end
+	int size;			/// size_t
+	int capacity;			/// size_t
 	uint64_t hash;
 	data_t *data;
 	uintptr_t mark_stk_end;
 };
 
-int unit_test();
-int stackctor(struct stack *thestk);
-int stack_push_back(struct stack *thestk, data_t value);
-int stack_pop_back(struct stack *thestk, data_t *buf);
+
+int unit_test();						/// stack_unit_test
+int stackctor(struct stack *thestk);				/// stack_ctor
+int stack_push_back(struct stack *thestk, data_t value);	/// You can just use stack_push 
+								/// I recommend data_t buf
+int stack_pop_back(struct stack *thestk, data_t *buf);		/// stack_pop
 int stack_clear(struct stack *thestk);
 int stack_check(struct stack *thestk);
-void stack_dump(struct stack *thestk, char *reason);
-uint64_t stack_gnu_hash(void *array, int size);
+void stack_dump(struct stack *thestk, char *reason);		/// int stack_dump ;)
+uint64_t stack_gnu_hash(void *array, int size);			/// gnu_hash(void *buf, size_t size),
+								/// it can be used separately.
+								/// note buf, it's not an array
 uintptr_t stack_mark(uintptr_t value);
-void stackdctor(struct stack *thestk);
+void stackdctor(struct stack *thestk);				/// stack_dtor
+///////////////////////////////////////////////////////////////////////////////////////////
 
+
+/// main() in main.c, separated from stack_t.c
 //==========================================================================
 int main()
 {
@@ -67,11 +100,12 @@ int stackctor(struct stack *thestk)
 	thestk->capacity = INITIAL_CAPACITY;
 	thestk->mark_stk_begin = stack_mark((uintptr_t)&thestk->size);
 	thestk->mark_stk_end = thestk->mark_stk_begin;
+	/// It's old style, you need no typecast here
 	thestk->data = (data_t*) calloc(thestk->capacity + 2, sizeof(data_t));
 	if(thestk->data == NULL)
 	{
 		return -1;
-	} else
+	} else	/// You need no else after return
 	{
 		thestk->data[0] = stack_mark((uintptr_t)&thestk->data);
 		thestk->data[1] = thestk->data[0];
@@ -79,12 +113,51 @@ int stackctor(struct stack *thestk)
 	}
 }
 //==========================================================================
+//
+/// You must rewrite this func
 int stack_push_back(struct stack *thestk, data_t value)
 {
+	/// Why is isfinite here?
 	if (thestk->size < thestk->capacity - 2  && isfinite((double)value))
 	{
 		thestk->data[thestk->size + 2] = thestk->data[thestk->size + 1];
+		/// ++ +, avoid this
 		thestk->data[thestk->size++ + 1] = value;
+
+
+		/// Nope, nope, nope. 
+		/// example:
+		//  
+		//  in .h:
+		//  #define STACK_PROT      // simple checks
+		//  #define STACK_PROT_MARK // marks
+		//  #define STACK_PROT_HASH // hash
+		//  // or comment them to skip tests
+		//
+		//  List:
+		//  STACK_CHECK();
+		//  STACK_MARK_CHECK();
+		//  STACK_MARK_UPDATE();
+		//  STACK_HASH_CHECK();
+		//  STACK_HASH_UPDATE();
+		//
+		//  example:
+		//
+		//  #ifdef STACK_PROT_HASH
+		//  #define STACK_HASH_CHECK()	\
+		//  ...
+		//  #define STACK_HASH_UPDATE() \
+		//  ...
+		//  #else
+		//  #define STACK_HASH_CHECK() ;
+		//  #define STACK_HASH_UPDATE() ;
+		//  #endif
+		//
+		//  Than you get STACK_CHECK() that you must place
+		//  in every stack_t-function
+		//
+		//  Example - my version of stack_pop
+		//
 		thestk->hash = stack_gnu_hash(thestk->data, thestk->size);
 		return 0;
 	} else
@@ -110,6 +183,7 @@ int stack_push_back(struct stack *thestk, data_t value)
 			}
 		}
 	}
+	//1	2	3	4  - too many tabs, this is bad code
 }
 //==========================================================================
 int stack_pop_back(struct stack *thestk, data_t *buf)
@@ -126,7 +200,26 @@ int stack_pop_back(struct stack *thestk, data_t *buf)
 		return -1;
 	}
 }
+
+/// My version
+int stack_pop(struct stack_t *s, sdata_t *buf)
+{
+	STACK_CHECK();
+	STACK_HASH_CHECK();
+	STACK_MARK_CHECK();
+	if (s->size < 2) {
+		assert(!"stack_pop with empty stack");
+		return -1;
+	}
+	sdata_t tmp = s->data[1 + s->size--];
+	STACK_MARK_UPDATE();
+	STACK_HASH_UPDATE();
+	return tmp;
+}
+
+
 //==========================================================================
+/// one line -> memset()
 int stack_clear(struct stack *thestk)
 {
 	while (thestk->size > 0)
@@ -174,20 +267,27 @@ int unit_test()
 //==========================================================================
 uint64_t stack_gnu_hash(void *array, int size)
 {
-	uint64_t hash = 0;
+	/// init magic value lost
+	uint64_t hash = 0; 
 	data_t *data = array;
 	for (int i = 1; i < size + 1; i++)
 	{
 		hash = hash * 33 + data[i];
 	}
+	/// just return hash;
+	// return hash;
 	return hash & 0xffffffffffffffff;
 }
 //==========================================================================
 uint64_t stack_mark(uintptr_t value)
 {
 	return (value / 33 + value % 33) & 0xffffffffffffffff;
+	/// Now you dont understand meaning of 33 and 0xff...f mask
+	// here:
+	// return value << 5 + value
 }
 //==========================================================================
+/// Absolute overengineering
 void stack_dump(struct stack *thestk, char *reason)
 {
 	uint64_t temp = 0;
